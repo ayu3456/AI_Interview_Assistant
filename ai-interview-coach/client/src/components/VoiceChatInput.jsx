@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MicrophoneIcon, PaperAirplaneIcon, StopIcon } from "@heroicons/react/24/solid";
+import { MicrophoneIcon, PaperAirplaneIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import useSpeechRecognition from "../hooks/useSpeechRecognition";
 
 /**
@@ -80,19 +80,33 @@ const VoiceChatInput = ({ onSendMessage, isLoading }) => {
       <div className="flex items-end gap-3">
         {isVoiceMode ? (
           <div className="flex-1 flex flex-col gap-2">
-            {/* Live Transcript Display */}
-            <div className={`min-h-[80px] p-4 rounded-xl border transition-all duration-300 ${
-              isListening ? "border-primary/50 bg-primary/5" : "border-white/10 bg-white/5"
-            }`}>
-              {inputText || <span className="text-textSecondary italic">Your speech will appear here...</span>}
+            {/* Editable Transcript Display */}
+            <div className="relative">
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder={isListening ? "Listening..." : "Your speech will appear here. You can edit it if needed."}
+                className={`w-full min-h-[100px] p-4 rounded-xl border transition-all duration-300 resize-none focus:outline-none ${
+                  isListening 
+                    ? "border-primary/50 bg-primary/5 text-white" 
+                    : "border-white/10 bg-white/5 text-white focus:border-primary"
+                }`}
+                readOnly={isListening} // Prevent typing while recording to avoid conflict with transcript updates
+              />
               
               {isListening && (
-                <div className="flex gap-1 mt-2">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-error/20 border border-error/30">
                   <span className="w-1.5 h-1.5 bg-error rounded-full animate-pulse" />
                   <span className="text-[10px] text-error font-bold uppercase tracking-wider">Recording</span>
                 </div>
               )}
             </div>
+            
+            {!isListening && inputText && (
+              <p className="text-[10px] text-accent font-medium px-1">
+                ✓ Recorded. Feel free to edit the text above before sending.
+              </p>
+            )}
             
             {error && <p className="text-xs text-error px-1">{error}</p>}
           </div>
@@ -131,9 +145,20 @@ const VoiceChatInput = ({ onSendMessage, isLoading }) => {
             onClick={handleSend}
             disabled={isLoading || !inputText.trim()}
             className="p-3 rounded-full bg-primary text-white shadow-glow hover:opacity-90 disabled:opacity-40 disabled:shadow-none transition-all"
+            title="Send Message"
           >
             <PaperAirplaneIcon className="h-6 w-6" />
           </button>
+
+          {!isListening && inputText && (
+            <button
+              onClick={() => { setInputText(""); setTranscript(""); }}
+              className="p-3 rounded-full bg-white/5 text-textSecondary hover:bg-white/10 transition-all"
+              title="Clear text"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </div>
       
