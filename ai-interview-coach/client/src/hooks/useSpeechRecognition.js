@@ -18,34 +18,42 @@ const useSpeechRecognition = () => {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
       let interimTranscript = "";
+      let finalTranscript = finalTranscriptRef.current;
+
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
         const piece = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscriptRef.current = `${finalTranscriptRef.current} ${piece}`.trim();
+          finalTranscript += piece + " ";
         } else {
           interimTranscript += piece;
         }
       }
-      const combined = `${finalTranscriptRef.current} ${interimTranscript}`.trim();
-      setTranscript(combined);
+      
+      finalTranscriptRef.current = finalTranscript;
+      setTranscript((finalTranscript + interimTranscript).trim());
     };
 
     recognition.onerror = (event) => {
+      console.error("Speech Recognition Error:", event.error);
+      if (event.error === "no-speech") return; // Ignore brief silence
+      
       setError(
         event.error === "not-allowed"
           ? "Microphone access blocked. Please allow access."
-          : "Speech recognition error. Please try again."
+          : `Error: ${event.error}`
       );
       setIsListening(false);
     };
 
     recognition.onend = () => {
+      // In continuous mode, it might end unexpectedly, we can handle restarts if needed
+      // but for this UI pattern, we let the user re-click if it stops.
       setIsListening(false);
     };
 
@@ -53,20 +61,24 @@ const useSpeechRecognition = () => {
   }, []);
 
   const startListening = () => {
-    if (!recognitionRef.current) {
-      return;
-    }
+    if (!recognitionRef.current || isListening) return;
+    
     setError("");
     setTranscript("");
     finalTranscriptRef.current = "";
     setIsListening(true);
-    recognitionRef.current.start();
+    
+    try {
+      recognitionRef.current.start();
+    } catch (err) {
+      console.error("Failed to start recognition:", err);
+      setIsListening(false);
+    }
   };
 
   const stopListening = () => {
-    if (!recognitionRef.current) {
-      return;
-    }
+    if (!recognitionRef.current || !isListening) return;
+    
     recognitionRef.current.stop();
     setIsListening(false);
   };

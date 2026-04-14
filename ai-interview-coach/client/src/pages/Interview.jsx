@@ -7,6 +7,7 @@ import api from "../utils/api";
 import ChatBubble from "../components/ChatBubble";
 import MicButton from "../components/MicButton";
 import useSpeechRecognition from "../hooks/useSpeechRecognition";
+import VoiceChatInput from "../components/VoiceChatInput";
 import { cancelSpeech, speakText } from "../utils/textToSpeech";
 
 const Interview = () => {
@@ -319,57 +320,7 @@ const Interview = () => {
 
       {/* Input area */}
       <div className="border-t border-white/10 bg-background/80 px-4 py-4 backdrop-blur-md sm:px-6">
-        <div className="mx-auto max-w-3xl">
-          {config.mode === "Text Mode" ? (
-            <div className="flex items-center gap-3">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder="Type your answer and press Enter..."
-                disabled={loading || isEnding}
-                className="flex-1 rounded-full border border-white/10 bg-surface px-5 py-3 text-sm text-white placeholder-textSecondary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50 transition-all duration-200"
-              />
-              <button
-                type="button"
-                onClick={handleSend}
-                disabled={loading || isEnding || !input.trim()}
-                className="flex-shrink-0 rounded-full bg-primary p-3 text-white shadow-glow transition-all duration-200 hover:opacity-90 disabled:opacity-40"
-              >
-                <PaperAirplaneIcon className="h-5 w-5" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4 w-full">
-              {transcript && (
-                <div className="w-full rounded-xl border border-primary/20 bg-surface/80 px-4 py-3 text-sm text-white">
-                  {transcript}
-                </div>
-              )}
-              {speechError && (
-                <p className="text-sm text-error">{speechError}</p>
-              )}
-              <p className="text-sm font-medium text-textSecondary h-5">
-                {isSpeaking
-                  ? "🔊 AI is speaking…"
-                  : isListening
-                  ? "🎙️ Listening — release to send"
-                  : "Hold mic to speak your answer"}
-              </p>
-              <MicButton
-                isListening={isListening}
-                disabled={loading || isSpeaking || isEnding}
-                onPress={handleVoicePress}
-                onRelease={handleVoiceRelease}
-              />
-            </div>
-          )}
-        </div>
+        <VoiceChatInput onSendMessage={sendMessage} isLoading={loading || isEnding} />
       </div>
     </div>
   );
