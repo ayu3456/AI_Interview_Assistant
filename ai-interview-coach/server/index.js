@@ -32,7 +32,7 @@ const startServer = async () => {
     console.log("✅ Connected to MongoDB");
 
     const port = process.env.PORT || 4000;
-    app.listen(port, () => {
+    app.listen(port, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${port}`);
     });
   } catch (error) {
